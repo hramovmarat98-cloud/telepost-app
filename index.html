@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Telepost Mini App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body { background: #f4f7fa; padding: 15px; }
+    .tab-content { display: none; }
+    .active { display: block !important; }
+    .btn { margin: 5px 0; }
+    .chat-msg { padding: 10px; margin: 8px 0; border-radius: 12px; max-width: 80%; }
+    .user { background: #d1e7dd; margin-left: auto; text-align: right; }
+    .bot { background: #f8f9fa; margin-right: auto; border: 1px solid #dee2e6; }
+  </style>
+</head>
+<body>
+  <h1>📱 Telepost</h1>
+
+  <!-- Навигация -->
+  <div class="btn-group w-100 mb-3" role="group">
+    <button class="btn btn-outline-primary" onclick="showTab('chat')">💬 Чат</button>
+    <button class="btn btn-outline-primary" onclick="showTab('settings')">⚙️ Настройки</button>
+    <button class="btn btn-outline-primary" onclick="showTab('analytics')">📊 Аналитика</button>
+  </div>
+
+  <!-- Вкладка: Чат -->
+  <div id="chat" class="tab-content active">
+    <div id="chat-history" style="height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 8px; background: white;">
+      <div class="chat-msg bot">Привет! Я — ваш контент-ассистент. Что будем генерировать?</div>
+    </div>
+    <div class="input-group mt-2">
+      <input type="text" id="user-input" class="form-control" placeholder="Введите сообщение..." onkeypress="handleEnter(event)">
+      <button class="btn btn-primary" onclick="sendMessage()">Отправить</button>
+    </div>
+  </div>
+
+  <!-- Вкладка: Настройки -->
+  <div id="settings" class="tab-content">
+    <div class="card">
+      <div class="card-body">
+        <h5>⚙️ Управление ботом</h5>
+        <button class="btn btn-success w-100" onclick="sendCommand('🔄 Перезапустить бота')">🔄 Перезапустить</button>
+        <button class="btn btn-danger w-100 mt-2" onclick="sendCommand('🛑 Остановить бота')">🛑 Остановить</button>
+        <button class="btn btn-info w-100 mt-2" onclick="sendCommand('📝 Обновить код')">📝 Обновить код</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Вкладка: Аналитика -->
+  <div id="analytics" class="tab-content">
+    <div class="card">
+      <div class="card-body">
+        <h5>📊 Анализ канала</h5>
+        <p><strong>🔹 Топ тем:</strong> ИИ, мотивация, технологии</p>
+        <p><strong>🔹 Самый вовлечённый пост:</strong> "Как ИИ меняет мир"</p>
+        <p><strong>🔹 Совет от ИИ:</strong> Добавьте больше видео — аудитория любит визуал</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const WebApp = window.Telegram?.WebApp;
+    WebApp.ready();
+
+    // Замените на ваш токен
+    const BOT_TOKEN = "YOUR_BOT_TOKEN";
+    const CHAT_ID = WebApp.initDataUnsafe?.user?.id || "123456789";
+
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function sendMessage() {
+      const input = document.getElementById("user-input");
+      const text = input.value.trim();
+      if (!text) return;
+
+      const chat = document.getElementById("chat-history");
+      const userMsg = document.createElement("div");
+      userMsg.className = "chat-msg user";
+      userMsg.textContent = text;
+      chat.appendChild(userMsg);
+      chat.scrollTop = chat.scrollHeight;
+
+      // Отправляем боту
+      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: CHAT_ID, text: "💬 Юзер: " + text })
+      });
+
+      input.value = "";
+    }
+
+    function sendCommand(cmd) {
+      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: CHAT_ID, text: cmd })
+      }).then(() => {
+        alert("✅ Команда отправлена: " + cmd);
+      });
+    }
+
+    function handleEnter(e) {
+      if (e.key === "Enter") sendMessage();
+    }
+  </script>
+</body>
+</html>
